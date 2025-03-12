@@ -9,6 +9,7 @@ import Foundation
 
 protocol HomePresentationProtocol {
     func presentResult(expression: String)
+    func typesViewPresented()
 }
 
 final class HomePresenter: HomePresentationProtocol {
@@ -17,5 +18,9 @@ final class HomePresenter: HomePresentationProtocol {
     
     func presentResult(expression: String) {
         view?.displayResult(expression)
-    }    
+    }
+    
+    func typesViewPresented() {
+        view?.showTypesScreen()
+    }
 }

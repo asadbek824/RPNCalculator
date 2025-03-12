@@ -9,6 +9,7 @@ import Foundation
 
 protocol HomeBusseinessProtocol {
     func handleInput(_ input: String)
+    func typesButtonTapped()
 }
 
 final class HomeInteractor: HomeBusseinessProtocol {
@@ -39,5 +40,9 @@ final class HomeInteractor: HomeBusseinessProtocol {
             currentExpression = worker.updateExpression(with: input, currentExpression: currentExpression)
         }
         presenter.presentResult(expression: currentExpression)
+    }
+    
+    func typesButtonTapped() {
+        presenter.typesViewPresented()
     }
 }

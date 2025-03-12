@@ -9,6 +9,7 @@ import UIKit
 
 protocol HomeViewDisplayProtocol: AnyObject {
     func displayResult(_ result: String)
+    func showTypesScreen()
 }
 
 final class HomeViewController: UIViewController {
@@ -33,6 +34,15 @@ final class HomeViewController: UIViewController {
         mainStackView.distribution  = .fillEqually
         return mainStackView
     }()
+    private let typesButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(
+            UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            for: .normal
+        )
+        button.tintColor = .orange
+        return button
+    }()
     
     private let buttonTitles: [[String]] = [
         ["C", "⌫", "(", ")"],
@@ -53,8 +63,6 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
 
         setUpView()
-        
-        
     }
     
     required init?(coder: NSCoder) {
@@ -69,7 +77,21 @@ private extension HomeViewController {
         
         view.backgroundColor = .black
         
+        setUpTypesButton()
         setUpMainStackView()
+    }
+    
+    func setUpTypesButton() {
+        view.addSubview(typesButton)
+        
+        typesButton.setConstraint(.left, from: view, 20)
+        typesButton.setConstraint(.width, from: view, 40)
+        typesButton.setConstraint(.height, from: view, 50)
+        typesButton.topAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20
+        ).isActive = true
+        
+        typesButton.addTarget(self, action: #selector(typesButtonTapped), for: .touchUpInside)
     }
     
     func setUpMainStackView() {
@@ -126,6 +148,10 @@ private extension HomeViewController {
         guard let title = sender.title(for: .normal) else { return }
         interactor.handleInput(title)
     }
+    
+    @objc func typesButtonTapped() {
+        interactor.typesButtonTapped()
+    }
 }
 
 //MARK: - HomeViewDisplayProtocol
@@ -143,6 +169,10 @@ extension HomeViewController: HomeViewDisplayProtocol {
         } else {
             displayLabel.text = result
         }
+    }
+    
+    func showTypesScreen() {
+        router.navigateToTypes()
     }
 }
 
