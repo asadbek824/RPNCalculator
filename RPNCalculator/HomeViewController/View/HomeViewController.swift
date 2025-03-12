@@ -8,7 +8,7 @@
 import UIKit
 
 protocol HomeViewDisplayProtocol: AnyObject {
-    
+    func displayResult(_ result: String)
 }
 
 final class HomeViewController: UIViewController {
@@ -53,6 +53,8 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
 
         setUpView()
+        
+        
     }
     
     required init?(coder: NSCoder) {
@@ -120,13 +122,27 @@ private extension HomeViewController {
 //MARK: - @OBJC Functions
 private extension HomeViewController {
     
-    @objc func calculatorButtonTapped() {
-        
+    @objc func calculatorButtonTapped(_ sender: UIButton) {
+        guard let title = sender.title(for: .normal) else { return }
+        interactor.handleInput(title)
     }
 }
 
 //MARK: - HomeViewDisplayProtocol
 extension HomeViewController: HomeViewDisplayProtocol {
-    
+  
+    func displayResult(_ result: String) {
+        if result.hasSuffix(".") {
+            displayLabel.text = result
+            return
+        }
+        
+        if let number = Double(result) {
+            let intValue = Int(number)
+            displayLabel.text = (number == Double(intValue)) ? "\(intValue)" : "\(number)"
+        } else {
+            displayLabel.text = result
+        }
+    }
 }
 

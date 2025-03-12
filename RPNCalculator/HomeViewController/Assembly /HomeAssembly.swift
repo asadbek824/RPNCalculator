@@ -11,9 +11,9 @@ final class HomeAssembly {
     
     static func assemble() -> HomeViewController {
         
-        let interactor = HomeInteractor()
         let router = HomeRouter()
         let presenter = HomePresenter()
+        let interactor = HomeInteractor(presenter: presenter)
         
         let viewController = HomeViewController(interactor: interactor, router: router)
         
@@ -22,4 +22,6 @@ final class HomeAssembly {
         
         return viewController
     }
+    
+    
 }
