@@ -13,9 +13,14 @@ protocol TypesPresentationProtocol {
     func featchSelectedType(_ selectedType: CalculatorType)
 }
 
-final class TypesPresenter: TypesPresentationProtocol {
+final class TypesPresenter {
     
     weak var view: TypesDisplayProtocol?
+    
+}
+
+//MARK: - TypesPresentationProtocol
+extension TypesPresenter: TypesPresentationProtocol {
     
     func closeTypesView() {
         view?.closeTypesView()

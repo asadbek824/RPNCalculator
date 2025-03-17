@@ -14,8 +14,17 @@ protocol HomeViewDisplayProtocol: AnyObject {
 
 final class HomeViewController: UIViewController {
     
-    var interactor: HomeBusseinessProtocol
-    var router: HomeRoutingProtocol
+    private let interactor: HomeBusseinessProtocol
+    private let router: HomeRoutingProtocol
+    
+    private let displayScrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.bounces = false
+        scrollView.alwaysBounceHorizontal = true
+        scrollView.isScrollEnabled = true
+        return scrollView
+    }()
     
     private let displayLabel: UILabel = {
         let label = UILabel()
@@ -23,23 +32,22 @@ final class HomeViewController: UIViewController {
         label.textColor = .white
         label.font = UIFont.systemFont(ofSize: 48, weight: .light)
         label.textAlignment = .right
-        label.adjustsFontSizeToFitWidth = true
+        label.adjustsFontSizeToFitWidth = false
         return label
     }()
+    
     private let mainStackView: UIStackView = {
-        let mainStackView = UIStackView()
-        mainStackView.axis = .vertical
-        mainStackView.spacing = 10
-        mainStackView.alignment = .fill
-        mainStackView.distribution  = .fillEqually
-        return mainStackView
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 10
+        stack.alignment = .fill
+        stack.distribution = .fillEqually
+        return stack
     }()
+    
     private let typesButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(
-            UIImage(systemName: "line.3.horizontal.decrease.circle"),
-            for: .normal
-        )
+        button.setImage(UIImage(systemName: "line.3.horizontal.decrease.circle"), for: .normal)
         button.tintColor = .orange
         return button
     }()
@@ -55,13 +63,11 @@ final class HomeViewController: UIViewController {
     init(interactor: HomeBusseinessProtocol, router: HomeRoutingProtocol) {
         self.interactor = interactor
         self.router = router
-        
         super.init(nibName: nil, bundle: nil)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         setUpView()
     }
     
@@ -72,11 +78,8 @@ final class HomeViewController: UIViewController {
 
 //MARK: - SetUpView
 private extension HomeViewController {
-    
     func setUpView() {
-        
         view.backgroundColor = .black
-        
         setUpTypesButton()
         setUpMainStackView()
     }
@@ -87,27 +90,28 @@ private extension HomeViewController {
         typesButton.setConstraint(.left, from: view, 20)
         typesButton.setConstraint(.width, from: view, 40)
         typesButton.setConstraint(.height, from: view, 50)
-        typesButton.topAnchor.constraint(
-            equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20
-        ).isActive = true
+        typesButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
         
         typesButton.addTarget(self, action: #selector(typesButtonTapped), for: .touchUpInside)
     }
     
     func setUpMainStackView() {
-        
         view.addSubview(mainStackView)
         
         mainStackView.setConstraint(.left, from: view, 20)
         mainStackView.setConstraint(.right, from: view, 20)
-        mainStackView.bottomAnchor.constraint(
-            equalTo: view.safeAreaLayoutGuide.bottomAnchor,
-            constant: -10
-        ).isActive = true
+        mainStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10).isActive = true
         
-        mainStackView.addArrangedSubview(displayLabel)
+        mainStackView.addArrangedSubview(displayScrollView)
+        displayScrollView.setConstraint(.height, from: mainStackView, 80)
         
-        displayLabel.setConstraint(.height, from: mainStackView, 80)
+        displayScrollView.addSubview(displayLabel)
+        displayLabel.setConstraint(.right, from: displayScrollView, 0)
+        displayLabel.leadingAnchor.constraint(greaterThanOrEqualTo: displayScrollView.leadingAnchor).isActive = true
+        displayLabel.setConstraint(.top, from: displayScrollView, 0)
+        displayLabel.setConstraint(.bottom, from: displayScrollView, 0)
+        displayLabel.heightAnchor.constraint(equalTo: displayScrollView.heightAnchor).isActive = true
+        displayLabel.widthAnchor.constraint(greaterThanOrEqualTo: displayScrollView.widthAnchor).isActive = true
         
         setUpCalculatorButtons()
     }
@@ -126,9 +130,7 @@ private extension HomeViewController {
                 button.titleLabel?.font = UIFont.systemFont(ofSize: 32, weight: .bold)
                 button.setTitleColor(.white, for: .normal)
                 button.backgroundColor = ["÷", "×", "-", "+", "="].contains(title) ? .orange : .darkGray
-                button.tag = title.hash
                 button.addTarget(self, action: #selector(calculatorButtonTapped), for: .touchUpInside)
-                
                 rowStackView.addArrangedSubview(button)
                 
                 DispatchQueue.main.async {
@@ -141,9 +143,8 @@ private extension HomeViewController {
     }
 }
 
-//MARK: - @OBJC Functions
+//MARK: - @Objc Functions
 private extension HomeViewController {
-    
     @objc func calculatorButtonTapped(_ sender: UIButton) {
         guard let title = sender.title(for: .normal) else { return }
         interactor.handleInput(title)
@@ -156,18 +157,18 @@ private extension HomeViewController {
 
 //MARK: - HomeViewDisplayProtocol
 extension HomeViewController: HomeViewDisplayProtocol {
-  
     func displayResult(_ result: String) {
-        if result.hasSuffix(".") {
-            displayLabel.text = result
-            return
-        }
         
-        if let number = Double(result) {
-            let intValue = Int(number)
-            displayLabel.text = (number == Double(intValue)) ? "\(intValue)" : "\(number)"
-        } else {
-            displayLabel.text = result
+        displayLabel.text = result
+        
+        DispatchQueue.main.async {
+            let labelWidth = self.displayLabel.intrinsicContentSize.width
+            let scrollViewWidth = self.displayScrollView.frame.width
+            self.displayScrollView.contentSize = CGSize(width: labelWidth, height: self.displayScrollView.frame.height)
+            if labelWidth > scrollViewWidth {
+                let offsetX = max(labelWidth - scrollViewWidth, 0)
+                self.displayScrollView.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
+            }
         }
     }
     
@@ -175,4 +176,3 @@ extension HomeViewController: HomeViewDisplayProtocol {
         router.navigateToTypes()
     }
 }
-

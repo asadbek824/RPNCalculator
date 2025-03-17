@@ -5,15 +5,19 @@
 //  Created by Asadbek Yoldoshev on 3/12/25.
 //
 
-import Foundation
+import UIKit
 
-final class HomeAssembly {
+final class HomeAssembly: AnyObject {
+    protocol Dependencies: AnyObject {
+        var rpnService: RPNService { get }
+    }
     
-    static func assemble() -> HomeViewController {
+    static func assemble(dependencies: Dependencies? = nil) -> HomeViewController {
         
         let router = HomeRouter()
         let presenter = HomePresenter()
-        let interactor = HomeInteractor(presenter: presenter)
+        let worker = HomeWorker(rpnService: dependencies?.rpnService ?? RPNService())
+        let interactor = HomeInteractor(presenter: presenter, worker: worker)
         
         let viewController = HomeViewController(interactor: interactor, router: router)
         
@@ -22,6 +26,4 @@ final class HomeAssembly {
         
         return viewController
     }
-    
-    
 }

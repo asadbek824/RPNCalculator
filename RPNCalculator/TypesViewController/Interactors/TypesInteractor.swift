@@ -13,14 +13,19 @@ protocol TypesBussenesProtocol {
     func featchTypes()
 }
 
-final class TypesInteractor: TypesBussenesProtocol {
+final class TypesInteractor {
     
-    var presenter: TypesPresentationProtocol
-    private let worker = TypesWorker()
+    private let presenter: TypesPresentationProtocol
+    private let worker: TypesWorker
     
-    init(presenter: TypesPresentationProtocol) {
+    init(presenter: TypesPresentationProtocol, worker: TypesWorker) {
         self.presenter = presenter
+        self.worker = worker
     }
+}
+
+//MARK: - TypesBussenesProtocol
+extension TypesInteractor: TypesBussenesProtocol {
     
     func viewTapped() {
         presenter.closeTypesView()

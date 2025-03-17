@@ -11,9 +11,14 @@ protocol HomeRoutingProtocol {
     func navigateToTypes()
 }
 
-final class HomeRouter: HomeRoutingProtocol {
+final class HomeRouter {
     
     weak var viewController: UIViewController?
+    
+}
+
+//MARK: - HomeRoutingProtocol
+extension HomeRouter: HomeRoutingProtocol {
     
     func navigateToTypes() {
         guard let viewController = viewController else { return }

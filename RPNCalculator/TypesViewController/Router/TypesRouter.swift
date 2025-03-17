@@ -11,9 +11,14 @@ protocol TypesRoutingProtocol {
     func routeToHome()
 }
  
-final class TypesRouter: TypesRoutingProtocol {
+final class TypesRouter {
     
     weak var viewController: UIViewController?
+    
+}
+
+//MARK: - TypesRoutingProtocol
+extension TypesRouter: TypesRoutingProtocol {
     
     func routeToHome() {
         viewController?.dismiss(animated: false)

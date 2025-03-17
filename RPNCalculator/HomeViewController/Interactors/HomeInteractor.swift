@@ -12,20 +12,22 @@ protocol HomeBusseinessProtocol {
     func typesButtonTapped()
 }
 
-final class HomeInteractor: HomeBusseinessProtocol {
-    
-    var presenter: HomePresentationProtocol
-    private let worker = HomeWorker()
-    
+final class HomeInteractor {
+    private let presenter: HomePresentationProtocol
+    private let worker: HomeWorker
     private var currentExpression: String = "0"
     
-    init(presenter: HomePresentationProtocol) {
+    init(presenter: HomePresentationProtocol, worker: HomeWorker) {
         self.presenter = presenter
+        self.worker = worker
     }
-    
+}
+
+extension HomeInteractor: HomeBusseinessProtocol {
     func handleInput(_ input: String) {
         switch input {
-        case  "C": currentExpression = "0"
+        case "C":
+            currentExpression = "0"
         case "⌫":
             if !currentExpression.isEmpty {
                 currentExpression.removeLast()
@@ -34,6 +36,11 @@ final class HomeInteractor: HomeBusseinessProtocol {
                 }
             }
         case "=":
+            let openBrackets = currentExpression.filter { $0 == "(" }.count
+            let closeBrackets = currentExpression.filter { $0 == ")" }.count
+            if openBrackets > closeBrackets {
+                currentExpression.append(String(repeating: ")", count: openBrackets - closeBrackets))
+            }
             let result = worker.evaluate(expression: currentExpression)
             currentExpression = result
         default:

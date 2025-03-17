@@ -12,10 +12,11 @@ protocol HomePresentationProtocol {
     func typesViewPresented()
 }
 
-final class HomePresenter: HomePresentationProtocol {
-    
+final class HomePresenter {
     weak var view: HomeViewDisplayProtocol?
-    
+}
+
+extension HomePresenter: HomePresentationProtocol {
     func presentResult(expression: String) {
         view?.displayResult(expression)
     }

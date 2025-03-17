@@ -13,7 +13,8 @@ final class TypesAssembly {
         
         let preseter = TypesPresenter()
         let router = TypesRouter()
-        let interactor = TypesInteractor(presenter: preseter)
+        let worker = TypesWorker()
+        let interactor = TypesInteractor(presenter: preseter, worker: worker)
         
         let viewController = TypesViewController(interactor: interactor, router: router)
         

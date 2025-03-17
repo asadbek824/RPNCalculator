@@ -14,11 +14,11 @@ protocol TypesDisplayProtocol: AnyObject {
 
 final class TypesViewController: UIViewController {
     
-    var interactor: TypesBussenesProtocol
-    var router: TypesRoutingProtocol
+    private let interactor: TypesBussenesProtocol
+    private let router: TypesRoutingProtocol
     
-    private var tableView = UITableView()
-    private var backgroundView = UIView()
+    private let tableView = UITableView()
+    private let backgroundView = UIView()
     
     private var calculatorTypes = CalculatorType.allCases
     private var selectedType: CalculatorType = .standard
@@ -110,14 +110,27 @@ private extension TypesViewController {
 extension TypesViewController: TypesDisplayProtocol {
     
     func closeTypesView() {
-        router.routeToHome()
+        let cells = tableView.visibleCells
+        
+        for (index, cell) in cells.enumerated() {
+            UIView.animate(withDuration: 0.3,
+                           delay: 0.05 * Double(index),
+                           options: .curveEaseInOut,
+                           animations: {
+                cell.alpha = 0
+                cell.transform = CGAffineTransform(translationX: 0, y: -50)
+                self.tableView.alpha = 0
+            }) { _ in
+                if index == cells.count - 1 {
+                    self.router.routeToHome()
+                }
+            }
+        }
     }
     
     func displayTypes(_ types: [CalculatorType], selectedType: CalculatorType) {
         self.calculatorTypes = types
         self.selectedType = selectedType
-        
-        tableView.reloadData()
     }
 }
 

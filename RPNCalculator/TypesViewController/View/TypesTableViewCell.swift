@@ -25,6 +25,14 @@ final class TypesTableViewCell: UITableViewCell {
         setupView()
     }
     
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+//MARK: - SetUpView
+extension TypesTableViewCell {
+    
     func configure(with type: CalculatorType, isSelected: Bool) {
         typeLabel.text = type.rawValue
         typeImageView.image = UIImage(systemName: type.iconName)
@@ -45,7 +53,4 @@ final class TypesTableViewCell: UITableViewCell {
         typeLabel.leadingAnchor.constraint(equalTo: typeImageView.trailingAnchor, constant: 10).isActive = true
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 }
