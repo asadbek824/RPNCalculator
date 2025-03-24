@@ -7,7 +7,7 @@
 
 import UIKit
 //MARK: - extension to UIView Constraint
-public extension UIView {
+extension UIView {
     enum Anchor {
         case left
         case right

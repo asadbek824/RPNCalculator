@@ -8,7 +8,7 @@
 import Foundation
 
 protocol HomePresentationProtocol {
-    func presentResult(expression: String)
+    func presentResult(expression: [CalculatorButtonTypes])
     func typesViewPresented()
 }
 
@@ -17,7 +17,7 @@ final class HomePresenter {
 }
 
 extension HomePresenter: HomePresentationProtocol {
-    func presentResult(expression: String) {
+    func presentResult(expression: [CalculatorButtonTypes]) {
         view?.displayResult(expression)
     }
     

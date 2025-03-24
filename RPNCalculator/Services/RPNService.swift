@@ -8,16 +8,30 @@
 import Foundation
 
 protocol RPNServiceProtocol {
-    func evaluate(expression: String) -> String
+    func evaluate(expression: String) -> Result<String, CalculationError>
 }
 
 final class RPNService {
     
+    // MARK: - Private Helpers
+    private func autoCorrectExpression(_ expression: String) -> String {
+        var expr = expression
+        let openCount = expr.filter { $0 == "(" }.count
+        let closeCount = expr.filter { $0 == ")" }.count
+        if openCount > closeCount {
+            expr.append(String(repeating: ")", count: openCount - closeCount))
+        }
+        if let lastChar = expr.last, "+-*/".contains(lastChar) {
+            expr.removeLast()
+        }
+        return expr
+    }
+    
     private func tokenize(_ expression: String) -> [String] {
         let pattern = "\\d+\\.?\\d*|[()+\\-*/]"
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return [] }
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
         let nsRange = NSRange(expression.startIndex..<expression.endIndex, in: expression)
-        let matches = regex.matches(in: expression, options: [], range: nsRange)
+        let matches = regex.matches(in: expression, range: nsRange)
         
         let tokens = matches.compactMap { match -> String? in
             guard let range = Range(match.range, in: expression) else { return nil }
@@ -25,131 +39,137 @@ final class RPNService {
         }
         
         var processedTokens: [String] = []
-        var previousToken: String? = nil
         for token in tokens {
             if token == "-" {
-                if previousToken == nil || previousToken == "(" || "+-*/".contains(previousToken!) {
+                if processedTokens.isEmpty ||
+                    processedTokens.last == "(" ||
+                    ["+", "-", "*", "/"].contains(processedTokens.last ?? "") {
                     processedTokens.append("0")
                 }
             }
             processedTokens.append(token)
-            previousToken = token
         }
         return processedTokens
     }
     
-    private func convertToRPN(_ expression: String) -> [String]? {
+    private func convertToRPN(tokens: [String]) -> Result<[String], CalculationError> {
         let operatorPrecedence: [String: Int] = ["+": 1, "-": 1, "*": 2, "/": 2]
         var outputQueue: [String] = []
         var operatorStack: [String] = []
         
-        let tokens = tokenize(expression)
-        print("Tokens: \(tokens)")
-        
         for token in tokens {
             if Double(token) != nil {
                 outputQueue.append(token)
-            } else if let tokenPrecedence = operatorPrecedence[token] {
+            } else if let precedence = operatorPrecedence[token] {
                 while let lastOperator = operatorStack.last,
                       let lastPrecedence = operatorPrecedence[lastOperator],
-                      lastPrecedence >= tokenPrecedence {
+                      lastPrecedence >= precedence {
                     outputQueue.append(operatorStack.removeLast())
                 }
                 operatorStack.append(token)
             } else if token == "(" {
                 operatorStack.append(token)
             } else if token == ")" {
-                while let lastOperator = operatorStack.last, lastOperator != "(" {
-                    outputQueue.append(operatorStack.removeLast())
+                var foundOpeningParenthesis = false
+                while let lastOperator = operatorStack.last {
+                    if lastOperator == "(" {
+                        operatorStack.removeLast()
+                        foundOpeningParenthesis = true
+                        break
+                    } else {
+                        outputQueue.append(operatorStack.removeLast())
+                    }
                 }
-                if operatorStack.last == "(" {
-                    operatorStack.removeLast()
-                } else {
-                    return nil
+                if !foundOpeningParenthesis {
+                    return .failure(.unmatchedParentheses)
                 }
             } else {
-                return nil
+                return .failure(.invalidExpression("Неожиданный токен: \(token)"))
             }
         }
         
         while let lastOperator = operatorStack.last {
-            if lastOperator == "(" {
-                return nil
+            if lastOperator == "(" || lastOperator == ")" {
+                return .failure(.unmatchedParentheses)
             }
             outputQueue.append(operatorStack.removeLast())
         }
-        return outputQueue
+        return .success(outputQueue)
     }
     
-    private func autoCorrectExpression(_ expression: String) -> String {
-        var expr = expression
-        let openBrackets = expr.filter { $0 == "(" }.count
-        let closeBrackets = expr.filter { $0 == ")" }.count
-        if openBrackets > closeBrackets {
-            expr.append(String(repeating: ")", count: openBrackets - closeBrackets))
-        }
-        if let lastChar = expr.last, "+-*/×÷".contains(lastChar) {
-            expr.removeLast()
-        }
-        return expr
-    }
-    
-    private func evaluateRPN(_ tokens: [String]) -> String {
+    private func evaluateRPN(tokens: [String]) -> Result<Double, CalculationError> {
         var stack: [Double] = []
         
         for token in tokens {
             if let number = Double(token) {
                 stack.append(number)
             } else {
-                if stack.count >= 2 {
-                    let b = stack.removeLast()
-                    let a = stack.removeLast()
-                    switch token {
-                    case "+":
-                        stack.append(a + b)
-                    case "-":
-                        stack.append(a - b)
-                    case "*":
-                        stack.append(a * b)
-                    case "/":
-                        stack.append(b == 0 ? 0 : a / b)
-                    default:
-                        continue
-                    }
-                } else {
-                    continue
+                guard stack.count >= 2 else {
+                    return .failure(.invalidExpression("Недостаточно операндов для оператора \(token)"))
                 }
+                let b = stack.removeLast()
+                let a = stack.removeLast()
+                var result: Double = 0
+                switch token {
+                case "+":
+                    result = (a + b).rounded(toPlaces: 15)
+                case "-":
+                    result = (a - b).rounded(toPlaces: 15)
+                case "*":
+                    result = (a * b).rounded(toPlaces: 15)
+                case "/":
+                    if b == 0 {
+                        return .failure(.divisionByZero)
+                    }
+                    result = (a / b).rounded(toPlaces: 15)
+                default:
+                    return .failure(.invalidExpression("Неизвестный оператор \(token)"))
+                }
+                stack.append(result)
             }
         }
         
-        if let result = stack.last {
-            if result.truncatingRemainder(dividingBy: 1) == 0 {
-                return String(Int(result))
-            } else {
-                return String(result)
-            }
+        if stack.count != 1 {
+            return .failure(.invalidExpression("Некорректное выражение"))
         }
-        return "0"
+        
+        return .success(stack[0])
     }
 }
 
-//MARK: - RPNServiceProtocol
+// MARK: - RPNServiceProtocol
 extension RPNService: RPNServiceProtocol {
-    func evaluate(expression: String) -> String {
+    
+    func evaluate(expression: String) -> Result<String, CalculationError> {
         let formattedExpression = expression
             .replacingOccurrences(of: "×", with: "*")
             .replacingOccurrences(of: "÷", with: "/")
-        
-        if let rpnTokens = convertToRPN(formattedExpression) {
-            print("RPN Expression: \(rpnTokens)")
-            return evaluateRPN(rpnTokens)
-        }
-        
         let correctedExpression = autoCorrectExpression(formattedExpression)
-        if let rpnTokens = convertToRPN(correctedExpression) {
-            print("Auto-corrected RPN Expression: \(rpnTokens)")
-            return evaluateRPN(rpnTokens)
+        
+        let digitsSet = CharacterSet.decimalDigits.union(CharacterSet(charactersIn: "."))
+        if correctedExpression.trimmingCharacters(in: .whitespaces).isEmpty ||
+            correctedExpression.rangeOfCharacter(from: digitsSet) == nil {
+            return .success("0")
         }
-        return "0"
+        
+        let tokens = tokenize(correctedExpression)
+        let rpnResult = convertToRPN(tokens: tokens)
+        
+        switch rpnResult {
+        case .failure(let error):
+            return .failure(error)
+        case .success(let rpnTokens):
+            let evaluationResult = evaluateRPN(tokens: rpnTokens)
+            switch evaluationResult {
+            case .failure(let error):
+                return .failure(error)
+            case .success(let value):
+                let formatted = (value.truncatingRemainder(dividingBy: 1) == 0)
+                    ? String(Int(value))
+                    : String(value)
+                return .success(formatted)
+            }
+        }
     }
 }
+

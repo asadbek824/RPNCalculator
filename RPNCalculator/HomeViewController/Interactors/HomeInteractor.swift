@@ -8,14 +8,14 @@
 import Foundation
 
 protocol HomeBusseinessProtocol {
-    func handleInput(_ input: String)
+    func handleInput(_ input: CalculatorButtonTypes)
     func typesButtonTapped()
 }
 
 final class HomeInteractor {
     private let presenter: HomePresentationProtocol
     private let worker: HomeWorker
-    private var currentExpression: String = "0"
+    private var currentExpression: [CalculatorButtonTypes] = [.zero]
     
     init(presenter: HomePresentationProtocol, worker: HomeWorker) {
         self.presenter = presenter
@@ -24,25 +24,30 @@ final class HomeInteractor {
 }
 
 extension HomeInteractor: HomeBusseinessProtocol {
-    func handleInput(_ input: String) {
+    func handleInput(_ input: CalculatorButtonTypes) {
         switch input {
-        case "C":
-            currentExpression = "0"
-        case "⌫":
+        case .clear:
+            currentExpression = [.zero]
+        case .backspace:
             if !currentExpression.isEmpty {
                 currentExpression.removeLast()
                 if currentExpression.isEmpty {
-                    currentExpression = "0"
+                    currentExpression = [.zero]
                 }
             }
-        case "=":
-            let openBrackets = currentExpression.filter { $0 == "(" }.count
-            let closeBrackets = currentExpression.filter { $0 == ")" }.count
+        case .equal:
+            let openBrackets = currentExpression.filter { $0 == .openBracket }.count
+            let closeBrackets = currentExpression.filter { $0 == .closeBracket }.count
+            
             if openBrackets > closeBrackets {
-                currentExpression.append(String(repeating: ")", count: openBrackets - closeBrackets))
+                let missing = openBrackets - closeBrackets
+                for _ in 0..<missing {
+                    currentExpression.append(.closeBracket)
+                }
             }
-            let result = worker.evaluate(expression: currentExpression)
-            currentExpression = result
+            
+            let resultString = worker.evaluate(expression: currentExpression)
+            currentExpression = convertToExpressionArray(resultString)
         default:
             currentExpression = worker.updateExpression(with: input, currentExpression: currentExpression)
         }
@@ -51,5 +56,9 @@ extension HomeInteractor: HomeBusseinessProtocol {
     
     func typesButtonTapped() {
         presenter.typesViewPresented()
+    }
+    
+    private func convertToExpressionArray(_ result: String) -> [CalculatorButtonTypes] {
+        return result.compactMap { CalculatorButtonTypes(rawValue: String($0)) }
     }
 }

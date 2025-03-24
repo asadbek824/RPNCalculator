@@ -40,9 +40,16 @@ final class TypesViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
-            self.tableView.alpha = 1
-        })
+        UIView.animate(
+            withDuration: 0.3,
+            delay: 0,
+            options: .curveEaseInOut,
+            animations:
+                { [weak self] in
+                    guard let self else { return }
+                    self.tableView.alpha = 1
+                }
+        )
     }
     
     required init?(coder: NSCoder) {
@@ -113,14 +120,18 @@ extension TypesViewController: TypesDisplayProtocol {
         let cells = tableView.visibleCells
         
         for (index, cell) in cells.enumerated() {
-            UIView.animate(withDuration: 0.3,
-                           delay: 0.05 * Double(index),
-                           options: .curveEaseInOut,
-                           animations: {
-                cell.alpha = 0
-                cell.transform = CGAffineTransform(translationX: 0, y: -50)
-                self.tableView.alpha = 0
-            }) { _ in
+            UIView.animate(
+                withDuration: 0.3,
+                delay: 0.05 * Double(index),
+                options: .curveEaseInOut,
+                animations:
+                    { [weak self, cell] in
+                        guard let self else { return }
+                        cell.alpha = 0
+                        cell.transform = CGAffineTransform(translationX: 0, y: -50)
+                        self.tableView.alpha = 0
+                    }
+            ) { _ in
                 if index == cells.count - 1 {
                     self.router.routeToHome()
                 }
@@ -151,15 +162,19 @@ extension TypesViewController: UITableViewDelegate, UITableViewDataSource {
         cell.alpha = 0
         cell.transform = CGAffineTransform(translationX: 0, y: -50)
         
-        UIView.animate(withDuration: 0.7,
-                       delay: 0.05 * Double(indexPath.row),
-                       usingSpringWithDamping: 0.7,
-                       initialSpringVelocity: 0.5,
-                       options: .curveEaseInOut,
-                       animations: {
-            cell.alpha = 1
-            cell.transform = .identity
-        })
+        UIView.animate(
+            withDuration: 0.7,
+            delay: 0.05 * Double(indexPath.row),
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.5,
+            options: .curveEaseInOut,
+            animations:
+                { [weak cell] in
+                    guard let cell = cell else { return }
+                    cell.alpha = 1
+                    cell.transform = .identity
+                }
+        )
         
         return cell
     }

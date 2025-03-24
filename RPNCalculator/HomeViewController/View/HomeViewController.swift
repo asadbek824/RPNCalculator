@@ -8,7 +8,7 @@
 import UIKit
 
 protocol HomeViewDisplayProtocol: AnyObject {
-    func displayResult(_ result: String)
+    func displayResult(_ result: [CalculatorButtonTypes])
     func showTypesScreen()
 }
 
@@ -52,13 +52,20 @@ final class HomeViewController: UIViewController {
         return button
     }()
     
-    private let buttonTitles: [[String]] = [
-        ["C", "⌫", "(", ")"],
-        ["7", "8", "9", "÷"],
-        ["4", "5", "6", "×"],
-        ["1", "2", "3", "-"],
-        ["0", ".", "=", "+"]
+    private let buttonTitlesVertical: [[CalculatorButtonTypes]] = [
+        [.clear, .backspace, .openBracket, .closeBracket],
+        [.seven, .eight, .nine, .divide],
+        [.four, .five, .six, .multiply],
+        [.one, .two, .three, .subtract],
+        [.zero, .dot, .equal, .add]
     ]
+    private let buttonTitlesHorizontal: [[CalculatorButtonTypes]] = [
+        [.seven, .eight, .nine, .openBracket, .divide],
+        [.four, .five, .six, .closeBracket, .multiply],
+        [.one, .two, .three, .backspace, .subtract],
+        [.clear, .zero, .dot, .equal, .add]
+    ]
+    private var buttonSquareConstraints = [NSLayoutConstraint]()
     
     init(interactor: HomeBusseinessProtocol, router: HomeRoutingProtocol) {
         self.interactor = interactor
@@ -69,6 +76,17 @@ final class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpView()
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        let isLandscape = size.width > size.height
+        
+        coordinator.animate(alongsideTransition: { _ in
+            self.buttonSquareConstraints.forEach { $0.isActive = !isLandscape }
+            self.view.layoutIfNeeded()
+        })
     }
     
     required init?(coder: NSCoder) {
@@ -90,7 +108,10 @@ private extension HomeViewController {
         typesButton.setConstraint(.left, from: view, 20)
         typesButton.setConstraint(.width, from: view, 40)
         typesButton.setConstraint(.height, from: view, 50)
-        typesButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+        typesButton.topAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.topAnchor,
+            constant: 20
+        ).isActive = true
         
         typesButton.addTarget(self, action: #selector(typesButtonTapped), for: .touchUpInside)
     }
@@ -100,43 +121,47 @@ private extension HomeViewController {
         
         mainStackView.setConstraint(.left, from: view, 20)
         mainStackView.setConstraint(.right, from: view, 20)
-        mainStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10).isActive = true
+        mainStackView.bottomAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+            constant: -10
+        ).isActive = true
         
         mainStackView.addArrangedSubview(displayScrollView)
-        displayScrollView.setConstraint(.height, from: mainStackView, 80)
         
         displayScrollView.addSubview(displayLabel)
         displayLabel.setConstraint(.right, from: displayScrollView, 0)
-        displayLabel.leadingAnchor.constraint(greaterThanOrEqualTo: displayScrollView.leadingAnchor).isActive = true
         displayLabel.setConstraint(.top, from: displayScrollView, 0)
         displayLabel.setConstraint(.bottom, from: displayScrollView, 0)
-        displayLabel.heightAnchor.constraint(equalTo: displayScrollView.heightAnchor).isActive = true
-        displayLabel.widthAnchor.constraint(greaterThanOrEqualTo: displayScrollView.widthAnchor).isActive = true
+        displayLabel.heightAnchor.constraint(
+            equalTo: displayScrollView.heightAnchor
+        ).isActive = true
+        displayLabel.widthAnchor.constraint(
+            greaterThanOrEqualTo: displayScrollView.widthAnchor
+        ).isActive = true
+        displayLabel.leadingAnchor.constraint(
+            greaterThanOrEqualTo: displayScrollView.leadingAnchor
+        ).isActive = true
         
         setUpCalculatorButtons()
     }
     
     func setUpCalculatorButtons() {
-        for row in buttonTitles {
+        for row in buttonTitlesVertical {
             let rowStackView = UIStackView()
             rowStackView.axis = .horizontal
             rowStackView.spacing = 10
             rowStackView.alignment = .fill
             rowStackView.distribution = .fillEqually
             
-            for title in row {
-                let button = UIButton(type: .system)
-                button.setTitle(title, for: .normal)
-                button.titleLabel?.font = UIFont.systemFont(ofSize: 32, weight: .bold)
-                button.setTitleColor(.white, for: .normal)
-                button.backgroundColor = ["÷", "×", "-", "+", "="].contains(title) ? .orange : .darkGray
+            for calculatorButton in row {
+                let button = CalculatorButton(type: .system)
+                button.customType = calculatorButton
                 button.addTarget(self, action: #selector(calculatorButtonTapped), for: .touchUpInside)
+                button.translatesAutoresizingMaskIntoConstraints = false
+                let squareConstraint = button.heightAnchor.constraint(equalTo: button.widthAnchor)
+                squareConstraint.isActive = true
+                buttonSquareConstraints.append(squareConstraint)
                 rowStackView.addArrangedSubview(button)
-                
-                DispatchQueue.main.async {
-                    button.layer.cornerRadius = button.frame.height / 2
-                    button.layer.masksToBounds = true
-                }
             }
             mainStackView.addArrangedSubview(rowStackView)
         }
@@ -145,9 +170,9 @@ private extension HomeViewController {
 
 //MARK: - @Objc Functions
 private extension HomeViewController {
-    @objc func calculatorButtonTapped(_ sender: UIButton) {
-        guard let title = sender.title(for: .normal) else { return }
-        interactor.handleInput(title)
+    @objc func calculatorButtonTapped(_ sender: CalculatorButton) {
+        guard let customType = sender.customType else { return }
+        interactor.handleInput(customType)
     }
     
     @objc func typesButtonTapped() {
@@ -157,11 +182,13 @@ private extension HomeViewController {
 
 //MARK: - HomeViewDisplayProtocol
 extension HomeViewController: HomeViewDisplayProtocol {
-    func displayResult(_ result: String) {
+    func displayResult(_ result: [CalculatorButtonTypes]) {
         
-        displayLabel.text = result
+        let resultText = result.map { $0.rawValue }.joined()
+        displayLabel.text = resultText
         
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             let labelWidth = self.displayLabel.intrinsicContentSize.width
             let scrollViewWidth = self.displayScrollView.frame.width
             self.displayScrollView.contentSize = CGSize(width: labelWidth, height: self.displayScrollView.frame.height)
