@@ -49,6 +49,8 @@ final class RPNService {
             }
             processedTokens.append(token)
         }
+        
+        print("Обработанные токены: \(processedTokens)")
         return processedTokens
     }
     
@@ -81,19 +83,23 @@ final class RPNService {
                     }
                 }
                 if !foundOpeningParenthesis {
+                    print("Ошибка: Несовпадающие скобки")
                     return .failure(.unmatchedParentheses)
                 }
             } else {
+                print("Ошибка: Неожиданный токен: \(token)")
                 return .failure(.invalidExpression("Неожиданный токен: \(token)"))
             }
         }
         
         while let lastOperator = operatorStack.last {
             if lastOperator == "(" || lastOperator == ")" {
+                print("Ошибка: Несовпадающие скобки в стеке операторов: \(operatorStack)")
                 return .failure(.unmatchedParentheses)
             }
             outputQueue.append(operatorStack.removeLast())
         }
+        print("Итоговое выражение в ОПЗ: \(outputQueue)")
         return .success(outputQueue)
     }
     
@@ -105,6 +111,7 @@ final class RPNService {
                 stack.append(number)
             } else {
                 guard stack.count >= 2 else {
+                    print("Ошибка: Недостаточно операндов для оператора \(token). Текущий стек: \(stack)")
                     return .failure(.invalidExpression("Недостаточно операндов для оператора \(token)"))
                 }
                 let b = stack.removeLast()
@@ -119,10 +126,12 @@ final class RPNService {
                     result = (a * b).rounded(toPlaces: 15)
                 case "/":
                     if b == 0 {
+                        print("Ошибка: Деление на ноль")
                         return .failure(.divisionByZero)
                     }
                     result = (a / b).rounded(toPlaces: 15)
                 default:
+                    print("Ошибка: Неизвестный оператор \(token)")
                     return .failure(.invalidExpression("Неизвестный оператор \(token)"))
                 }
                 stack.append(result)
@@ -130,9 +139,11 @@ final class RPNService {
         }
         
         if stack.count != 1 {
+            print("Ошибка: Некорректное выражение. Итоговый стек: \(stack)")
             return .failure(.invalidExpression("Некорректное выражение"))
         }
         
+        print("Итоговый результат вычисления: \(stack[0])")
         return .success(stack[0])
     }
 }
@@ -172,4 +183,3 @@ extension RPNService: RPNServiceProtocol {
         }
     }
 }
-

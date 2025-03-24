@@ -59,13 +59,6 @@ final class HomeViewController: UIViewController {
         [.one, .two, .three, .subtract],
         [.zero, .dot, .equal, .add]
     ]
-    private let buttonTitlesHorizontal: [[CalculatorButtonTypes]] = [
-        [.seven, .eight, .nine, .openBracket, .divide],
-        [.four, .five, .six, .closeBracket, .multiply],
-        [.one, .two, .three, .backspace, .subtract],
-        [.clear, .zero, .dot, .equal, .add]
-    ]
-    private var buttonSquareConstraints = [NSLayoutConstraint]()
     
     init(interactor: HomeBusseinessProtocol, router: HomeRoutingProtocol) {
         self.interactor = interactor
@@ -76,17 +69,6 @@ final class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpView()
-    }
-    
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        
-        let isLandscape = size.width > size.height
-        
-        coordinator.animate(alongsideTransition: { _ in
-            self.buttonSquareConstraints.forEach { $0.isActive = !isLandscape }
-            self.view.layoutIfNeeded()
-        })
     }
     
     required init?(coder: NSCoder) {
@@ -156,11 +138,12 @@ private extension HomeViewController {
             for calculatorButton in row {
                 let button = CalculatorButton(type: .system)
                 button.customType = calculatorButton
+                
                 button.addTarget(self, action: #selector(calculatorButtonTapped), for: .touchUpInside)
+                
                 button.translatesAutoresizingMaskIntoConstraints = false
-                let squareConstraint = button.heightAnchor.constraint(equalTo: button.widthAnchor)
-                squareConstraint.isActive = true
-                buttonSquareConstraints.append(squareConstraint)
+                button.heightAnchor.constraint(equalTo: button.widthAnchor).isActive = true
+                
                 rowStackView.addArrangedSubview(button)
             }
             mainStackView.addArrangedSubview(rowStackView)

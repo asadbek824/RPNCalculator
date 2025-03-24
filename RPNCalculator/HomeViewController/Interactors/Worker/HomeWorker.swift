@@ -91,6 +91,11 @@ extension HomeWorker {
             
             return expression
         case .dot:
+            if expression.isEmpty || (expression.last?.isOperator ?? false) || expression.last == .openBracket {
+                expression.append(.zero)
+                expression.append(input)
+                return expression
+            }
             let components = expression.split { "+-×÷()".contains($0.rawValue) }
             if let lastComponent = components.last, lastComponent.contains(.dot) {
                 return expression
