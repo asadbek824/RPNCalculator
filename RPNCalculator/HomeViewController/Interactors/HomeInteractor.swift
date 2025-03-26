@@ -59,6 +59,18 @@ extension HomeInteractor: HomeBusseinessProtocol {
     }
     
     private func convertToExpressionArray(_ result: String) -> [CalculatorButtonTypes] {
-        return result.compactMap { CalculatorButtonTypes(rawValue: String($0)) }
+        if result.contains("e") {
+            var array: [CalculatorButtonTypes] = []
+            for character in result {
+                let charStr = String(character)
+                if charStr == "+" { continue }
+                if let type = CalculatorButtonTypes(rawValue: charStr) {
+                    array.append(type)
+                }
+            }
+            return array
+        } else {
+            return result.compactMap { CalculatorButtonTypes(rawValue: String($0)) }
+        }
     }
 }

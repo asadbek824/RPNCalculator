@@ -175,9 +175,16 @@ extension RPNService: RPNServiceProtocol {
             case .failure(let error):
                 return .failure(error)
             case .success(let value):
-                let formatted = (value.truncatingRemainder(dividingBy: 1) == 0)
-                    ? String(Int(value))
-                    : String(value)
+                var formatted: String
+                if value.truncatingRemainder(dividingBy: 1) == 0 {
+                    formatted = String(format: "%.0e", locale: Locale(identifier: "en_US_POSIX"), value)
+                } else {
+                    formatted = String(format: "%.15e", locale: Locale(identifier: "en_US_POSIX"), value)
+                }
+                if !formatted.contains("e"), let signRange = formatted.range(of: "+") ?? formatted.range(of: "-") {
+                    formatted.insert("e", at: signRange.lowerBound)
+                    formatted = formatted.replacingOccurrences(of: "e+", with: "e")
+                }
                 return .success(formatted)
             }
         }

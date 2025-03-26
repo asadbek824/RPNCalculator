@@ -3,4 +3,68 @@
    uuid = "78C42B1D-4A0D-426B-81BC-09DFD132CD53"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4ABD43C6-A5F0-4803-8472-8F85CC4A4524"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RPNCalculator/HomeViewController/Presenter/HomePresenter.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "21"
+            endingLineNumber = "21"
+            landmarkName = "presentResult(expression:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F4E858A9-D4E2-415E-B462-BC27A5483B40"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RPNCalculator/HomeViewController/View/HomeViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "170"
+            endingLineNumber = "170"
+            landmarkName = "displayResult(_:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "F4E858A9-D4E2-415E-B462-BC27A5483B40 - 7c7786defd9c1047"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "RPNCalculator.HomeViewController.displayResult(Swift.Array&lt;RPNCalculator.CalculatorButtonTypes&gt;) -&gt; ()"
+                  moduleName = "RPNCalculator.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/asadbek/Desktop/Payme%20Tasks/RPNCalculator/RPNCalculator/HomeViewController/View/HomeViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "170"
+                  endingLineNumber = "170">
+               </Location>
+               <Location
+                  uuid = "F4E858A9-D4E2-415E-B462-BC27A5483B40 - 772835e92dd0aa3e"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (RPNCalculator.CalculatorButtonTypes) -&gt; Swift.String in RPNCalculator.HomeViewController.displayResult(Swift.Array&lt;RPNCalculator.CalculatorButtonTypes&gt;) -&gt; ()"
+                  moduleName = "RPNCalculator.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/asadbek/Desktop/Payme%20Tasks/RPNCalculator/RPNCalculator/HomeViewController/View/HomeViewController.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "170"
+                  endingLineNumber = "170">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

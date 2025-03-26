@@ -25,6 +25,7 @@ enum CalculatorButtonTypes: String {
     case seven = "7"
     case eight = "8"
     case nine = "9"
+    case exponent = "e"
     
     // Операторы
     case add = "+"
