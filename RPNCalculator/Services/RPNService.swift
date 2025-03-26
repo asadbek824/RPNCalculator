@@ -175,10 +175,7 @@ extension RPNService: RPNServiceProtocol {
             case .failure(let error):
                 return .failure(error)
             case .success(let value):
-                let stringValue = String(value)
-                let formatted: String = stringValue.hasSuffix(".0")
-                ? String(stringValue.dropLast(2))
-                : stringValue
+                let formatted = String(format: "%g", value)
                 return .success(formatted)
             }
         }
